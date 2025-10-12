@@ -1,11 +1,16 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Riwayat Transaksi - Lacak Keuangan Ku</title>
+    <title>Riwayat Transaksi - Manajer Keuangan</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,39 +21,38 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar for better aesthetics */
+        /* Custom scrollbar for better aesthetics in dark mode */
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: #1e293b; /* slate-800 */
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #475569; /* slate-600 */
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: #64748b; /* slate-500 */
         }
     </style>
 </head>
-<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-slate-900 flex items-center justify-center min-h-screen p-4 transition-colors duration-300">
 
-    <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-lg">
+    <div class="bg-slate-800 rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-lg">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Riwayat Transaksi</h1>
-            <a href="index.html" class="text-slate-500 hover:text-slate-800 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                <span class="sr-only">Kembali ke Halaman Utama</span>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-100">Riwayat Transaksi</h1>
+            <a href="index.html" class="text-slate-400 hover:text-indigo-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </a>
         </div>
 
         <!-- Chart Section -->
         <div class="mb-6">
-            <h2 class="text-lg font-semibold text-slate-600 mb-3 text-center">Visualisasi Total</h2>
+            <h2 class="text-lg font-semibold text-slate-300 mb-3 text-center">Visualisasi Total</h2>
             <div class="w-full max-w-xs mx-auto relative">
                  <canvas id="finance-chart"></canvas>
-                 <p id="chart-no-data" class="absolute inset-0 flex items-center justify-center text-slate-500 hidden">Data kosong.</p>
+                 <p id="chart-no-data" class="absolute inset-0 flex items-center justify-center text-slate-400 hidden">Data kosong.</p>
             </div>
         </div>
 
@@ -57,9 +61,10 @@
         </div>
     </div>
 
-    <!-- History Page Logic -->
+    <!-- App Logic -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
             const fullTransactionListEl = document.getElementById('full-transaction-list');
             const financeChartCanvas = document.getElementById('finance-chart');
             const chartNoDataEl = document.getElementById('chart-no-data');
@@ -81,7 +86,7 @@
             const saveTransactions = (transactions) => {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
             };
-
+            
             // --- Chart Rendering ---
             function renderChart(totalIncome, totalExpense) {
                 const ctx = financeChartCanvas.getContext('2d');
@@ -93,6 +98,10 @@
                 } else {
                     chartNoDataEl.classList.add('hidden');
                 }
+                
+                // Chart.js global defaults for dark mode
+                Chart.defaults.color = '#94a3b8'; // slate-400
+                Chart.defaults.borderColor = '#334155'; // slate-700
 
                 financeChart = new Chart(ctx, {
                     type: 'doughnut',
@@ -101,7 +110,7 @@
                         datasets: [{
                             data: [totalIncome, totalExpense],
                             backgroundColor: ['#10b981', '#ef4444'],
-                            borderColor: '#ffffff',
+                            borderColor: '#1e293b', // slate-800
                             borderWidth: 2,
                             hoverOffset: 4
                         }]
@@ -112,15 +121,16 @@
                         plugins: {
                             legend: {
                                 position: 'bottom',
+                                labels: {
+                                    color: '#cbd5e1' // slate-300
+                                }
                             },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
                                         let label = context.label || '';
                                         if (label) label += ': ';
-                                        if (context.parsed !== null) {
-                                            label += formatCurrency(context.parsed);
-                                        }
+                                        if (context.parsed !== null) label += formatCurrency(context.parsed);
                                         return label;
                                     }
                                 }
@@ -129,60 +139,61 @@
                     }
                 });
             }
-            
+
             // --- UI Update Functions ---
             function renderHistoryList(sortedTransactions) {
                 fullTransactionListEl.innerHTML = '';
 
                 if (sortedTransactions.length === 0) {
-                    fullTransactionListEl.innerHTML = '<p class="text-slate-500 text-center py-4">Belum ada transaksi.</p>';
+                    fullTransactionListEl.innerHTML = '<p class="text-slate-400 text-center py-4">Belum ada transaksi.</p>';
                     return;
                 }
 
                 const grouped = sortedTransactions.reduce((acc, tx) => {
                     const monthYear = new Date(tx.createdAt).toLocaleString('id-ID', { month: 'long', year: 'numeric' });
-                    if (!acc[monthYear]) acc[monthYear] = [];
-                    acc[monthYear].push(tx);
+                    if (!acc[monthYear]) acc[monthYear] = { transactions: [], totalIncome: 0, totalExpense: 0 };
+                    acc[monthYear].transactions.push(tx);
+                    if(tx.type === 'income') acc[monthYear].totalIncome += tx.amount;
+                    else acc[monthYear].totalExpense += tx.amount;
                     return acc;
                 }, {});
-
+                
                 const now = new Date();
                 const currentMonthYear = now.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
 
                 for (const month in grouped) {
                     const monthHeader = document.createElement('h3');
                     monthHeader.textContent = month;
-                    monthHeader.className = 'text-lg font-semibold text-slate-700 pt-4 pb-2 border-b';
+                    monthHeader.className = 'text-lg font-semibold text-slate-200 pt-4 pb-2 border-b border-slate-700';
                     fullTransactionListEl.appendChild(monthHeader);
                     
-                    const monthTransactions = grouped[month];
-                    monthTransactions.forEach(tx => addTransactionToDOM(tx, fullTransactionListEl));
+                    grouped[month].transactions.forEach(tx => addTransactionToDOM(tx, fullTransactionListEl));
 
+                    // Add "Jejak Finansial" card if the month has passed
                     if (month !== currentMonthYear) {
-                        const monthIncome = monthTransactions.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + tx.amount, 0);
-                        const monthExpense = monthTransactions.filter(tx => tx.type === 'expense').reduce((sum, tx) => sum + tx.amount, 0);
-                        const savings = monthIncome - monthExpense;
-
+                        const savings = grouped[month].totalIncome - grouped[month].totalExpense;
                         if (savings > 0) {
-                            const summaryEl = document.createElement('div');
-                            summaryEl.className = 'flex items-center p-3 mt-2 mb-4 bg-sky-50 border-l-4 border-sky-500 rounded-lg shadow-sm';
-                            summaryEl.innerHTML = `
-                                <div class="mr-4 flex-shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-600">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                                        <path d="m9 12 2 2 4-4"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-sky-800">Jejak Finansial</p>
-                                    <p class="text-sm text-slate-600">Anda berhasil menghemat <strong>${formatCurrency(savings)}</strong> bulan ini.</p>
-                                </div>
-                            `;
-                            fullTransactionListEl.appendChild(summaryEl);
+                            addSavingsCard(savings, fullTransactionListEl);
                         }
                     }
                 }
             }
+            
+            function addSavingsCard(amount, parentElement) {
+                const card = document.createElement('div');
+                card.className = 'flex items-center gap-4 p-4 my-3 bg-indigo-900/40 rounded-lg border border-indigo-500/30';
+                card.innerHTML = `
+                    <div class="flex-shrink-0 text-indigo-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-indigo-200">Jejak Finansial!</p>
+                        <p class="text-sm text-indigo-300">Anda berhasil menghemat ${formatCurrency(amount)} bulan ini.</p>
+                    </div>
+                `;
+                parentElement.appendChild(card);
+            }
+
 
             function formatCurrency(amount) {
                 return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -196,30 +207,32 @@
             function addTransactionToDOM(transaction, parentElement) {
                 const item = document.createElement('div');
                 const isIncome = transaction.type === 'income';
-                item.className = `flex justify-between items-start p-3 bg-slate-50 rounded-lg border-l-4 shadow-sm ${isIncome ? 'border-green-500' : 'border-red-500'}`;
+                item.className = `flex justify-between items-start p-3 bg-slate-700/50 rounded-lg border-l-4 shadow-sm ${isIncome ? 'border-green-500' : 'border-red-500'}`;
+
                 item.innerHTML = `
                     <div class="flex-1 mr-2">
-                        <p class="font-medium text-slate-800">${transaction.description}</p>
-                        <p class="text-sm text-slate-600">${formatCurrency(Math.abs(transaction.amount))}</p>
+                        <p class="font-medium text-slate-200">${transaction.description}</p>
+                        <p class="text-sm text-slate-400">${formatCurrency(Math.abs(transaction.amount))}</p>
                         <p class="text-xs text-slate-400 mt-1">${formatTimestamp(transaction.createdAt)}</p>
                     </div>
-                    <button data-id="${transaction.id}" class="delete-btn text-slate-400 hover:text-red-600 transition-colors p-2 rounded-full flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"/></svg>
+                    <button data-id="${transaction.id}" class="delete-btn text-slate-400 hover:text-red-400 transition-colors p-2 rounded-full flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"/></svg>
                     </button>
                 `;
                 parentElement.appendChild(item);
             }
 
             function refreshUI() {
-                const transactions = getTransactions();
-                const sortedTransactions = [...transactions].sort((a, b) => b.createdAt - a.createdAt);
+                const allTransactions = getTransactions();
+                const sortedTransactions = [...allTransactions].sort((a, b) => b.createdAt - a.createdAt);
                 
-                let totalIncome = 0, totalExpense = 0;
-                transactions.forEach(tx => {
+                let totalIncome = 0;
+                let totalExpense = 0;
+                allTransactions.forEach(tx => {
                     if (tx.type === 'income') totalIncome += tx.amount;
                     else totalExpense += tx.amount;
                 });
-                
+
                 renderHistoryList(sortedTransactions);
                 renderChart(totalIncome, totalExpense);
             }
@@ -235,10 +248,11 @@
                 }
             }
             
+            // --- Initialization ---
             fullTransactionListEl.addEventListener('click', handleDeleteTransaction);
-
             refreshUI();
         });
     </script>
 </body>
 </html>
+

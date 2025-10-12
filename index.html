@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <!-- Meta tags for PWA on iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LacakKeuanganKu">
     <!-- Baris ini untuk ikon aplikasi kustom Anda di Layar Utama iOS -->
     <link rel="apple-touch-icon" href="https://i.pinimg.com/736x/e1/43/a8/e143a8001d2ab84e2206a3f04256b35b.jpg">
@@ -13,6 +13,12 @@
     <title>Manajer Keuangan Pribadi (Offline)</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Konfigurasi Tailwind untuk Dark Mode
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,36 +48,39 @@
         #notification.error {
             background-color: #ef4444; /* red-500 */
         }
+        #notification.success {
+            background-color: #22c55e; /* green-500 */
+        }
     </style>
 </head>
-<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4 pb-20">
+<body class="bg-slate-900 flex items-center justify-center min-h-screen p-4 pb-20 transition-colors duration-300">
     <!-- Notification Element -->
     <div id="notification"></div>
 
-    <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-lg">
+    <div class="bg-slate-800 rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-lg">
         <!-- Header -->
         <div class="text-center mb-6">
-            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Lacak Keuangan Ku</h1>
-            <p class="text-slate-500 mt-1">Catat pemasukan dan pengeluaran Anda.</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-100">Lacak Keuangan Ku</h1>
+            <p class="text-slate-400 mt-1">Catat pemasukan dan pengeluaran Anda.</p>
         </div>
 
         <!-- Summary Section -->
         <div class="mb-6">
-            <h2 class="text-lg font-semibold text-slate-600 mb-2">Ringkasan</h2>
-            <div class="bg-slate-800 text-white p-6 rounded-xl shadow-md">
+            <h2 class="text-lg font-semibold text-slate-300 mb-2">Ringkasan</h2>
+            <div class="bg-slate-900/50 text-white p-6 rounded-xl shadow-md">
                 <span class="text-sm uppercase text-slate-400">Saldo Bulan Ini</span>
                 <p id="current-month-balance" class="text-4xl font-bold tracking-tight mt-1">Rp 0</p>
             </div>
-            <div class="bg-indigo-100 text-indigo-800 p-4 rounded-lg mt-4 text-center">
+            <div class="bg-indigo-900/30 text-indigo-200 p-4 rounded-lg mt-4 text-center">
                 <h3 class="font-semibold">Saldo Seluruhnya</h3>
                 <p id="total-balance" class="text-xl font-bold">Rp 0</p>
             </div>
             <div class="grid grid-cols-2 gap-4 mt-4 text-center">
-                <div class="bg-green-100 text-green-800 p-4 rounded-lg">
+                <div class="bg-green-900/30 text-green-200 p-4 rounded-lg">
                     <h3 class="font-semibold">Pemasukan Bulan Ini</h3>
                     <p id="income" class="text-xl font-bold">Rp 0</p>
                 </div>
-                <div class="bg-red-100 text-red-800 p-4 rounded-lg">
+                <div class="bg-red-900/30 text-red-200 p-4 rounded-lg">
                     <h3 class="font-semibold">Pengeluaran Bulan Ini</h3>
                     <p id="expense" class="text-xl font-bold">Rp 0</p>
                 </div>
@@ -80,30 +89,30 @@
 
         <!-- New Transaction Form -->
         <div class="mb-6">
-            <h2 class="text-lg font-semibold text-slate-600 mb-3">Tambah Transaksi Baru</h2>
+            <h2 class="text-lg font-semibold text-slate-300 mb-3">Tambah Transaksi Baru</h2>
             <form id="transaction-form" class="space-y-4">
                 <div>
-                    <label for="description" class="block text-sm font-medium text-slate-700">Deskripsi</label>
-                    <input type="text" id="description" placeholder="cth: Gaji bulanan" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" required>
+                    <label for="description" class="block text-sm font-medium text-slate-300">Deskripsi</label>
+                    <input type="text" id="description" placeholder="cth: Gaji bulanan" class="mt-1 block w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-200" required>
                 </div>
                 <div>
-                    <label for="amount" class="block text-sm font-medium text-slate-700">Jumlah (Rp)</label>
-                    <input type="text" inputmode="decimal" pattern="[0-9]*" id="amount" placeholder="cth: 50000" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" required>
+                    <label for="amount" class="block text-sm font-medium text-slate-300">Jumlah (Rp)</label>
+                    <input type="text" inputmode="decimal" pattern="[0-9]*" id="amount" placeholder="cth: 50000" class="mt-1 block w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-200" required>
                 </div>
                 <fieldset>
-                    <legend class="block text-sm font-medium text-slate-700 mb-2">Jenis Transaksi</legend>
+                    <legend class="block text-sm font-medium text-slate-300 mb-2">Jenis Transaksi</legend>
                     <div class="flex gap-4">
-                        <label class="flex items-center p-3 border border-slate-300 rounded-md flex-1 cursor-pointer has-[:checked]:bg-green-50 has-[:checked]:border-green-400 transition-all">
+                        <label class="flex items-center p-3 border border-slate-600 rounded-md flex-1 cursor-pointer has-[:checked]:bg-green-900/50 has-[:checked]:border-green-600 transition-all">
                             <input type="radio" name="type" value="income" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500" checked>
-                            <span class="ml-3 text-sm font-medium text-slate-700">Pemasukan</span>
+                            <span class="ml-3 text-sm font-medium text-slate-300">Pemasukan</span>
                         </label>
-                        <label class="flex items-center p-3 border border-slate-300 rounded-md flex-1 cursor-pointer has-[:checked]:bg-red-50 has-[:checked]:border-red-400 transition-all">
+                        <label class="flex items-center p-3 border border-slate-600 rounded-md flex-1 cursor-pointer has-[:checked]:bg-red-900/50 has-[:checked]:border-red-600 transition-all">
                             <input type="radio" name="type" value="expense" class="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500">
-                            <span class="ml-3 text-sm font-medium text-slate-700">Pengeluaran</span>
+                            <span class="ml-3 text-sm font-medium text-slate-300">Pengeluaran</span>
                         </label>
                     </div>
                 </fieldset>
-                <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 shadow-sm">
+                <button type="submit" class="w-full bg-indigo-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 shadow-sm">
                     Tambah Transaksi
                 </button>
             </form>
@@ -111,36 +120,20 @@
 
         <!-- Recent Transaction History -->
         <div>
-            <h2 class="text-lg font-semibold text-slate-600 mb-3">Transaksi Terakhir</h2>
+            <h2 class="text-lg font-semibold text-slate-300 mb-3">Transaksi Terakhir</h2>
             <div id="transaction-list" class="space-y-3">
                 <!-- Recent transactions will be dynamically inserted here -->
             </div>
-            <a href="history.html" class="block w-full mt-4 text-center text-indigo-600 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+            <a href="history.html" class="block w-full mt-4 text-center text-indigo-400 font-semibold py-2 px-4 rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                 Lihat Riwayat Lengkap
             </a>
         </div>
     </div>
     
     <!-- TradingView Widget BEGIN -->
-    <div class="fixed bottom-0 left-0 w-full">
-        <div class="tradingview-widget-container">
-            <div class="tradingview-widget-container__widget"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-            {
-              "symbols": [
-                { "description": "S&P 500", "proName": "SP:SPX" },
-                { "description": "Telkom Indonesia", "proName": "IDX:TLKM" },
-                { "description": "BCA", "proName": "IDX:BBCA" },
-                { "description": "BRI", "proName": "IDX:BBRI" },
-                { "description": "Mandiri", "proName": "IDX:BMRI" }
-              ],
-              "showSymbolLogo": true,
-              "colorTheme": "light",
-              "isTransparent": false,
-              "displayMode": "adaptive",
-              "locale": "id"
-            }
-            </script>
+    <div class="fixed bottom-0 left-0 w-full z-10">
+        <div id="tradingview-widget-container">
+            <!-- Widget will be loaded here by script -->
         </div>
     </div>
     <!-- TradingView Widget END -->
@@ -149,6 +142,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
+            const tradingViewContainer = document.getElementById('tradingview-widget-container');
             const currentMonthBalanceEl = document.getElementById('current-month-balance');
             const totalBalanceEl = document.getElementById('total-balance');
             const incomeEl = document.getElementById('income');
@@ -162,15 +156,37 @@
             const STORAGE_KEY = 'financeTrackerTransactions';
             let notificationTimeout;
 
+             // --- TradingView Widget Loader ---
+            function loadTradingViewWidget() {
+                tradingViewContainer.innerHTML = ''; // Clear previous widget
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
+                script.async = true;
+                const config = {
+                  "symbols": [
+                    { "description": "S&P 500", "proName": "SP:SPX" },
+                    { "description": "Telkom Indonesia", "proName": "IDX:TLKM" },
+                    { "description": "BCA", "proName": "IDX:BBCA" },
+                    { "description": "BRI", "proName": "IDX:BBRI" },
+                    { "description": "Mandiri", "proName": "IDX:BMRI" }
+                  ],
+                  "showSymbolLogo": true,
+                  "colorTheme": "dark", // Always dark
+                  "isTransparent": false,
+                  "displayMode": "adaptive",
+                  "locale": "id"
+                };
+                script.innerHTML = JSON.stringify(config);
+                tradingViewContainer.appendChild(script);
+            }
+
             // --- Notification Function ---
             function showNotification(message, type = 'error') {
                 clearTimeout(notificationTimeout);
                 notificationEl.textContent = message;
-                notificationEl.className = type; // e.g. 'error'
-                
-                // Trigger reflow to restart animation
+                notificationEl.className = type;
                 void notificationEl.offsetWidth;
-
                 notificationEl.classList.add('show');
                 notificationTimeout = setTimeout(() => {
                     notificationEl.classList.remove('show');
@@ -195,7 +211,6 @@
             // --- UI Update Functions ---
             function updateUI(allTransactions) {
                 const sortedTransactions = [...allTransactions].sort((a, b) => b.createdAt - a.createdAt);
-
                 const now = new Date();
                 const currentMonth = now.getMonth();
                 const currentYear = now.getFullYear();
@@ -218,7 +233,7 @@
 
                 transactionListEl.innerHTML = '';
                 if (sortedTransactions.length === 0) {
-                    transactionListEl.innerHTML = '<p class="text-slate-500 text-center py-4">Belum ada transaksi.</p>';
+                    transactionListEl.innerHTML = '<p class="text-slate-400 text-center py-4">Belum ada transaksi.</p>';
                 } else {
                     sortedTransactions.slice(0, 3).forEach(tx => addTransactionToDOM(tx, transactionListEl));
                 }
@@ -246,15 +261,15 @@
             function addTransactionToDOM(transaction, parentElement) {
                 const item = document.createElement('div');
                 const isIncome = transaction.type === 'income';
-                item.className = `flex justify-between items-start p-3 bg-slate-50 rounded-lg border-l-4 shadow-sm ${isIncome ? 'border-green-500' : 'border-red-500'}`;
+                item.className = `flex justify-between items-start p-3 bg-slate-700/50 rounded-lg border-l-4 shadow-sm ${isIncome ? 'border-green-500' : 'border-red-500'}`;
 
                 item.innerHTML = `
                     <div class="flex-1 mr-2">
-                        <p class="font-medium text-slate-800">${transaction.description}</p>
-                        <p class="text-sm text-slate-600">${formatCurrency(Math.abs(transaction.amount))}</p>
+                        <p class="font-medium text-slate-200">${transaction.description}</p>
+                        <p class="text-sm text-slate-400">${formatCurrency(Math.abs(transaction.amount))}</p>
                         <p class="text-xs text-slate-400 mt-1">${formatTimestamp(transaction.createdAt)}</p>
                     </div>
-                    <button data-id="${transaction.id}" class="delete-btn text-slate-400 hover:text-red-600 transition-colors p-2 rounded-full flex-shrink-0">
+                    <button data-id="${transaction.id}" class="delete-btn text-slate-400 hover:text-red-400 transition-colors p-2 rounded-full flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"/></svg>
                     </button>
                 `;
@@ -281,6 +296,9 @@
                 const newTransaction = { id: crypto.randomUUID(), description, amount, type, createdAt: Date.now() };
                 transactions.push(newTransaction);
                 saveTransactions(transactions);
+                
+                showNotification('Transaksi berhasil ditambahkan!', 'success');
+                
                 refreshUI();
                 form.reset();
                 descriptionInput.focus();
@@ -297,10 +315,15 @@
                 }
             }
             
-            form.addEventListener('submit', handleAddTransaction);
-            transactionListEl.addEventListener('click', handleDeleteTransaction);
+            // --- Initialization ---
+            function init() {
+                loadTradingViewWidget();
+                form.addEventListener('submit', handleAddTransaction);
+                transactionListEl.addEventListener('click', handleDeleteTransaction);
+                refreshUI();
+            }
 
-            refreshUI();
+            init();
         });
     </script>
 </body>
