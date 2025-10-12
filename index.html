@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="LacakKeuanganKu">
     <!-- Baris ini untuk ikon aplikasi kustom Anda di Layar Utama iOS -->
-    <link rel="apple-touch-icon" href="https://i.pinimg.com/736x/7e/1e/4f/7e1e4f8c524fcffc47fa0a2d1f7da724.jpg">
+    <link rel="apple-touch-icon" href="https://i.pinimg.com/736x/e1/43/a8/e143a8001d2ab84e2206a3f04256b35b.jpg">
     
     <title>Manajer Keuangan Pribadi (Offline)</title>
     <!-- Tailwind CSS for styling -->
@@ -21,9 +21,32 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* Notification Toast Style */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(calc(100% + 20px));
+            transition: transform 0.5s ease-in-out;
+            opacity: 0;
+        }
+        #notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        #notification.error {
+            background-color: #ef4444; /* red-500 */
+        }
     </style>
 </head>
-<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4 pb-20">
+    <!-- Notification Element -->
+    <div id="notification"></div>
 
     <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-lg">
         <!-- Header -->
@@ -97,6 +120,30 @@
             </a>
         </div>
     </div>
+    
+    <!-- TradingView Widget BEGIN -->
+    <div class="fixed bottom-0 left-0 w-full">
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+            {
+              "symbols": [
+                { "description": "S&P 500", "proName": "SP:SPX" },
+                { "description": "Telkom Indonesia", "proName": "IDX:TLKM" },
+                { "description": "BCA", "proName": "IDX:BBCA" },
+                { "description": "BRI", "proName": "IDX:BBRI" },
+                { "description": "Mandiri", "proName": "IDX:BMRI" }
+              ],
+              "showSymbolLogo": true,
+              "colorTheme": "light",
+              "isTransparent": false,
+              "displayMode": "adaptive",
+              "locale": "id"
+            }
+            </script>
+        </div>
+    </div>
+    <!-- TradingView Widget END -->
 
     <!-- Offline App Logic -->
     <script>
@@ -110,8 +157,25 @@
             const form = document.getElementById('transaction-form');
             const descriptionInput = document.getElementById('description');
             const amountInput = document.getElementById('amount');
+            const notificationEl = document.getElementById('notification');
 
             const STORAGE_KEY = 'financeTrackerTransactions';
+            let notificationTimeout;
+
+            // --- Notification Function ---
+            function showNotification(message, type = 'error') {
+                clearTimeout(notificationTimeout);
+                notificationEl.textContent = message;
+                notificationEl.className = type; // e.g. 'error'
+                
+                // Trigger reflow to restart animation
+                void notificationEl.offsetWidth;
+
+                notificationEl.classList.add('show');
+                notificationTimeout = setTimeout(() => {
+                    notificationEl.classList.remove('show');
+                }, 3000);
+            }
 
             // --- Local Storage Functions ---
             const getTransactions = () => {
@@ -191,7 +255,7 @@
                         <p class="text-xs text-slate-400 mt-1">${formatTimestamp(transaction.createdAt)}</p>
                     </div>
                     <button data-id="${transaction.id}" class="delete-btn text-slate-400 hover:text-red-600 transition-colors p-2 rounded-full flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6"/></svg>
                     </button>
                 `;
                 parentElement.appendChild(item);
@@ -209,7 +273,7 @@
                 const type = document.querySelector('input[name="type"]:checked').value;
 
                 if (!description || isNaN(amount) || amount <= 0) {
-                    alert('Mohon isi deskripsi dan jumlah yang valid.');
+                    showNotification('Mohon isi deskripsi dan jumlah yang valid.');
                     return;
                 }
                 
