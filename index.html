@@ -8,14 +8,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="LacakKeuanganKu">
     <!-- Baris ini untuk ikon aplikasi kustom Anda di Layar Utama iOS -->
-    <link rel="apple-touch-icon" href="https://i.pinimg.com/736x/e1/43/a8/e143a8001d2ab84e2206a3f04256b35b.jpg">
+    <link rel="apple-touch-icon" href="https://i.pinimg.com/736x/7e/1e/4f/7e1e4f8c524fcffc47fa0a2d1f7da724.jpg">
     
     <title>Manajer Keuangan Pribadi (Offline)</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -297,13 +297,42 @@
                     return acc;
                 }, {});
 
+                const now = new Date();
+                const currentMonthYear = now.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+
                 for (const month in grouped) {
                     const monthHeader = document.createElement('h3');
                     monthHeader.textContent = month;
                     monthHeader.className = 'text-lg font-semibold text-slate-700 pt-4 pb-2 border-b';
                     fullTransactionListEl.appendChild(monthHeader);
                     
-                    grouped[month].forEach(tx => addTransactionToDOM(tx, fullTransactionListEl));
+                    const monthTransactions = grouped[month];
+                    monthTransactions.forEach(tx => addTransactionToDOM(tx, fullTransactionListEl));
+
+                    // --- NEW: Monthly Savings Summary ---
+                    if (month !== currentMonthYear) {
+                        const monthIncome = monthTransactions.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + tx.amount, 0);
+                        const monthExpense = monthTransactions.filter(tx => tx.type === 'expense').reduce((sum, tx) => sum + tx.amount, 0);
+                        const savings = monthIncome - monthExpense;
+
+                        if (savings > 0) {
+                            const summaryEl = document.createElement('div');
+                            summaryEl.className = 'flex items-center p-3 mt-2 mb-4 bg-sky-50 border-l-4 border-sky-500 rounded-lg shadow-sm';
+                            summaryEl.innerHTML = `
+                                <div class="mr-4 flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-600">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        <path d="m9 12 2 2 4-4"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-sky-800">Jejak Finansial</p>
+                                    <p class="text-sm text-slate-600">Anda berhasil menghemat <strong>${formatCurrency(savings)}</strong> bulan ini.</p>
+                                </div>
+                            `;
+                            fullTransactionListEl.appendChild(summaryEl);
+                        }
+                    }
                 }
             }
 
@@ -392,4 +421,3 @@
     </script>
 </body>
 </html>
-
