@@ -362,6 +362,8 @@
 
             // --- Voice Recognition Logic (Optimized for Mobile/iOS) ---
             let recognition;
+            let isListening = false;
+
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
@@ -372,15 +374,15 @@
                 recognition.interimResults = true; 
 
                 recognition.onstart = () => {
+                    isListening = true;
                     voiceBtn.classList.add('bg-red-500', 'hover:bg-red-600', 'text-white', 'listening-ring');
                     voiceBtn.classList.remove('bg-slate-700', 'hover:bg-slate-600', 'text-slate-200');
                     voiceStatusText.textContent = "Mendengarkan...";
                     micIcon.innerHTML = '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line>'; 
-                    // Remove toast if it's annoying, or keep it. 
-                    // showNotification('Silakan bicara...', 'info', 0); 
                 };
 
                 recognition.onend = () => {
+                    isListening = false;
                     voiceBtn.classList.remove('bg-red-500', 'hover:bg-red-600', 'text-white', 'listening-ring');
                     voiceBtn.classList.add('bg-slate-700', 'hover:bg-slate-600', 'text-slate-200');
                     voiceStatusText.textContent = "Suara";
@@ -412,21 +414,32 @@
 
                 recognition.onerror = (event) => {
                     console.error("Speech recognition error", event.error);
+                    isListening = false;
+                    
+                    // Reset UI
+                    voiceBtn.classList.remove('bg-red-500', 'hover:bg-red-600', 'text-white', 'listening-ring');
+                    voiceBtn.classList.add('bg-slate-700', 'hover:bg-slate-600', 'text-slate-200');
+                    voiceStatusText.textContent = "Suara";
+
                     if (event.error === 'no-speech') {
-                        showNotification('Tidak ada suara terdeteksi.', 'error');
+                        showNotification('Tidak ada suara. Coba lagi.', 'info');
                     } else if (event.error === 'not-allowed') {
-                        showNotification('Akses mikrofon ditolak.', 'error');
+                        showNotification('Akses mic ditolak. Cek Pengaturan Safari.', 'error');
                     } else {
-                        // Ignore vague errors
+                        showNotification('Gagal: ' + event.error, 'error');
                     }
                 };
 
                 voiceBtn.addEventListener('click', () => {
-                    try {
-                        recognition.start();
-                    } catch (e) {
-                        console.log("Recognition already started");
+                    if (isListening) {
                         recognition.stop();
+                    } else {
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            console.log("Error starting recognition", e);
+                            recognition.stop();
+                        }
                     }
                 });
             } else {
