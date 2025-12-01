@@ -447,38 +447,94 @@
                 const incomeKeywords = ['dapat', 'gaji', 'terima', 'masuk', 'transfer', 'jual', 'bonus', 'thr'];
                 const expenseKeywords = ['beli', 'bayar', 'jajan', 'makan', 'minum', 'keluar', 'belanja', 'ongkos'];
 
+                // Explicit keywords for removal later
+                const typeKeywords = [...incomeKeywords, ...expenseKeywords, 'pengeluaran', 'pemasukan', 'transaksi'];
+
                 if (incomeKeywords.some(keyword => lowerText.includes(keyword))) {
                     type = 'income';
                 } else if (expenseKeywords.some(keyword => lowerText.includes(keyword))) {
                     type = 'expense';
                 }
+                
+                // Also check explicit "pengeluaran" or "pemasukan"
+                if (lowerText.includes('pemasukan')) type = 'income';
+                if (lowerText.includes('pengeluaran')) type = 'expense';
 
-                // 2. Detect Amount (Parses "20 ribu", "50.000", "50000")
-                const numberPattern = /(\d+(?:[.,]\d+)?)\s*(ribu|rb|juta|jt|k)?/i;
+                // 2. Detect Amount 
+                // Enhanced regex to handle multiple dots/commas e.g. 2.000.250 or 1,500,000
+                // Explanation: \d+ followed by repeating group of ([.,]\d+). 
+                // Requires word boundaries or spacing to avoid matching inside other IDs if possible.
+                // Added capturing group for the whole number part
+                const numberPattern = /\b(\d+(?:[.,]\d+)*)\s*(ribu|rb|juta|jt|k|m)?\b/i;
                 const match = text.match(numberPattern);
 
                 if (match) {
-                    let rawNumber = match[1].replace(/\./g, '').replace(/,/g, '.'); 
+                    let rawNumberStr = match[1];
+                    let multiplierStr = match[2];
                     
-                    let numVal = parseFloat(rawNumber);
-                    const multiplier = match[2];
+                    // Clean format: 2.000.250 -> 2000250. 
+                    // Assume IDR: dots are thousands, commas are decimals.
+                    let cleanNum = rawNumberStr;
+                    
+                    // Heuristic: If there are multiple dots, they are definitely thousands separators.
+                    // If there is one comma at the end (last 2 chars), it's decimal.
+                    if (cleanNum.includes('.') && cleanNum.includes(',')) {
+                         cleanNum = cleanNum.replace(/\./g, '').replace(',', '.');
+                    } else if (cleanNum.includes(',')) {
+                         // e.g. 50,000. If followed by 00 or 2 digits, maybe decimal? 
+                         // But in voice, people rarely say "koma". Google might output "20,000" for 20k.
+                         // Let's assume comma is thousands if followed by 3 digits (standard english/google output)
+                         // OR decimal if followed by 2 digits.
+                         if (/,\d{3}\b/.test(cleanNum)) {
+                            cleanNum = cleanNum.replace(/,/g, '');
+                         } else {
+                            cleanNum = cleanNum.replace(/,/g, '.');
+                         }
+                    } else {
+                         // Only dots. 2.000.000 -> remove dots.
+                         cleanNum = cleanNum.replace(/\./g, '');
+                    }
+                    
+                    let numVal = parseFloat(cleanNum);
 
-                    if (multiplier) {
-                        const m = multiplier.toLowerCase();
-                        if (m === 'ribu' || m === 'rb' || m === 'k') numVal *= 1000;
-                        if (m === 'juta' || m === 'jt') numVal *= 1000000;
+                    if (multiplierStr) {
+                        const m = multiplierStr.toLowerCase();
+                        if (['ribu', 'rb', 'k'].includes(m)) numVal *= 1000;
+                        if (['juta', 'jt', 'm'].includes(m)) numVal *= 1000000;
                     }
 
                     amount = numVal;
                     
-                    // Hapus nominal dari deskripsi agar lebih bersih
-                    description = description.replace(match[0], '')
-                                             .replace(/\brp\.?\s*/gi, '') // Hapus "Rp" atau "Rp."
-                                             .replace(/\s+/g, ' ')        // Hapus spasi ganda
-                                             .trim();                     // Hapus spasi awal/akhir
+                    // 3. Clean Description
+                    // Remove the number matched (match[0] is the whole thing including "ribu")
+                    description = description.replace(match[0], '');
                 }
 
-                // 3. Update UI
+                // 4. Further Clean Description
+                // Remove "Rp", "Rp.", keywords like "seharga", "sebesar", "untuk", "buat" THAT ARE NEAR THE NUMBER location?
+                // For simplicity, we remove generic connecting words globally or if they leave trailing spaces
+                
+                // Remove Type Keywords if they appear at start (e.g. "Pengeluaran 20rb...")
+                // We split by space to be safe? Or regex replace.
+                typeKeywords.forEach(kw => {
+                    // Regex to remove keyword if it's whole word
+                    const kwRegex = new RegExp(`\\b${kw}\\b`, 'gi');
+                    description = description.replace(kwRegex, '');
+                });
+
+                // Remove filler words
+                const fillerWords = ['untuk', 'buat', 'seharga', 'sebesar', 'senilai', 'rp', 'rupiah'];
+                fillerWords.forEach(kw => {
+                    const kwRegex = new RegExp(`\\b${kw}\\b`, 'gi');
+                    description = description.replace(kwRegex, '');
+                });
+
+                // Clean up extra spaces and punctuation
+                description = description.replace(/\s+/g, ' ').trim();
+                // Remove leading/trailing non-alphanumeric if any
+                description = description.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '');
+
+                // 5. Update UI
                 descriptionInput.value = capitalizeFirstLetter(description);
                 // Only overwrite amount if we actually found a number, otherwise leave blank or let user type
                 if (amount > 0) {
